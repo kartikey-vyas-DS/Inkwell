@@ -1,0 +1,40 @@
+# Environment and secrets - never commit these
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Inkwell data - user-specific, not for repo
+inkwell/
+Inkwell Data/
+knowledge_brain/
+*.db
+ingestion_progress.json
+bm25_corpus.json
+book_index.json
+chroma.sqlite3
+
+# Books - too large for git, user's own content
+Books/*.pdf
+Books/user_book_registry.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
