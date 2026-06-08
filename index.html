@@ -1047,15 +1047,29 @@ async function delInsight(e,iid){e.stopPropagation();if(!confirm('Delete?'))retu
 
 // ── Insight modal ─────────────────────────────────────────────────────────────
 function openInsightModal(msgId){
-  const data=_msgData.get(msgId);const excerpt=data?data.excerpt:'';
+  const data=_msgData.get(msgId);
+  const excerpt=(data&&data.excerpt)||buildInsightExcerptFromMessage(msgId);
+  if(!excerpt.trim()){
+    alert('No answer text was available to save yet. Wait for the answer to finish, then try again.');
+    return;
+  }
   draftCtx={sid:sessionId,tnum:turnCount};draft=null;
   document.getElementById('msave').disabled=true;
   document.getElementById('mbody').innerHTML=`<div class="mloading"><div class="dots" style="justify-content:center"><span></span><span></span><span></span></div><div class="mloading-txt">Distilling…</div></div>`;
   document.getElementById('overlay').classList.add('on');
   fetch('/api/insights/draft',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({conversation_excerpt:excerpt,user_note:'',session_id:sessionId||'',turn_number:turnCount})})
-  .then(r=>r.json()).then(d=>{draft=d;renderDraft(d);document.getElementById('msave').disabled=false})
+  .then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.detail||'Could not create an insight draft.');return d})
+  .then(d=>{draft=d;renderDraft(d);document.getElementById('msave').disabled=false})
   .catch(err=>{document.getElementById('mbody').innerHTML=`<div style="padding:20px;color:var(--red);font-size:13px">Error: ${err.message}</div>`});
+}
+function buildInsightExcerptFromMessage(msgId){
+  const data=_msgData.get(msgId)||{};
+  const bubble=document.querySelector(`.mbubble[data-mid="${msgId}"]`);
+  const answer=(bubble?.innerText||'').trim();
+  if(!answer)return '';
+  const question=(data.question||'').trim();
+  return `${question?`User: ${question}\n\n`:''}Brain: ${answer.slice(0,4000)}`;
 }
 function renderDraft(d){
   document.getElementById('mbody').innerHTML=`
@@ -1116,6 +1130,11 @@ async function sendMsg(){
         if(eventName==='token'&&bubble){tokenBuf+=data.text;tokenCount++;if(tokenCount%20===0){bubble.innerHTML=renderMd(tokenBuf)+'<span class="stream-cursor"></span>';scrollBotIfAtBottom()}}
         if(eventName==='done'&&bubble){
           bubble.innerHTML=renderMd(tokenBuf);renderMath(bubble);
+          const msgData=_msgData.get(mid);
+          if(msgData){
+            msgData.question=q;
+            msgData.excerpt=`User: ${q}\n\nBrain: ${tokenBuf.slice(0,4000)}`;
+          }
           history.push({role:'user',content:q});history.push({role:'assistant',content:tokenBuf});
           const footer=bubble.closest('.msg')?.querySelector('.save-ins-btn');if(footer)footer.style.display='inline-flex';
           if(data.stop_reason==='max_tokens'){
@@ -1153,6 +1172,10 @@ async function continueAnswer(mid,bubble,prevText,origQ){
         if(eName==='token'){continuation+=d.text;count++;if(count%20===0){bubble.innerHTML=renderMd(prevText+'\n\n'+continuation)+'<span class="stream-cursor"></span>';scrollBotIfAtBottom()}}
         if(eName==='done'){
           const full=prevText+'\n\n'+continuation;bubble.innerHTML=renderMd(full);renderMath(bubble);
+          const msgData=_msgData.get(mid);
+          if(msgData){
+            msgData.excerpt=`${msgData.question?`User: ${msgData.question}\n\n`:''}Brain: ${full.slice(0,4000)}`;
+          }
           history[history.length-1]={role:'assistant',content:full};if(btn)btn.remove();
           if(d.stop_reason==='max_tokens'){
             const c2=document.createElement('button');c2.className='continue-btn';c2.innerHTML='→ Continue answer';
@@ -1170,7 +1193,7 @@ function _createAsstMsg(question,meta){
   const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg asst';
   const mid=++_msgId,sources=meta.sources||[],webSources=meta.web_sources||[];
   const booksSearched=meta.books_searched||0,booksWithResults=meta.books_with_results||0,webSearched=meta.web_searched||false;
-  _msgData.set(mid,{excerpt:'',sources,webSources,booksSearched,booksWithResults,webSearched});
+  _msgData.set(mid,{question,excerpt:'',sources,webSources,booksSearched,booksWithResults,webSearched});
   const bookNames=[...new Set(sources.map(s=>s.book))];
   const summaryText=bookNames.length?`${bookNames.length} book${bookNames.length>1?'s':''} · ${sources.length} passage${sources.length>1?'s':''}`:'';
   d.innerHTML=`

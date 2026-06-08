@@ -477,6 +477,8 @@ async def delete_turn(turn_id: int):
 @app.post("/api/insights/draft")
 async def draft_insight(req: InsightDraftRequest):
     require_brain()
+    if not req.conversation_excerpt.strip():
+        raise HTTPException(400, "No answer text was available to distil into an insight.")
     try:
         return brain.draft_insight(req.conversation_excerpt, req.user_note)
     except Exception as e:
