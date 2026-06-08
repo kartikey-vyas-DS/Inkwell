@@ -5,6 +5,8 @@ color 0B
 
 set "SCRIPT_DIR=%~dp0"
 set "VENV_ACTIVATE=%SCRIPT_DIR%venv\Scripts\activate.bat"
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
 
 if not exist "%VENV_ACTIVATE%" (
     echo.

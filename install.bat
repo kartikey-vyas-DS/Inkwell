@@ -6,6 +6,8 @@ color 0B
 set "SCRIPT_DIR=%~dp0"
 set "VENV_DIR=%SCRIPT_DIR%venv"
 set "PYTHON_CMD="
+set "PYTHONUTF8=1"
+set "PYTHONIOENCODING=utf-8"
 
 echo.
 echo  ============================================================
@@ -106,13 +108,15 @@ echo  All dependencies installed successfully.
 
 echo.
 echo  [4/4] Creating desktop shortcut...
-set "SHORTCUT_PATH=%USERPROFILE%\Desktop\Inkwell.lnk"
+set "DESKTOP_DIR=%USERPROFILE%\Desktop"
+for /f "usebackq tokens=*" %%d in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "[Environment]::GetFolderPath('Desktop')"`) do set "DESKTOP_DIR=%%d"
+set "SHORTCUT_PATH=%DESKTOP_DIR%\Inkwell.lnk"
 set "START_SCRIPT=%SCRIPT_DIR%start.bat"
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT_PATH%'); $s.TargetPath = '%START_SCRIPT%'; $s.WorkingDirectory = '%SCRIPT_DIR%'; $s.WindowStyle = 7; $s.Description = 'Launch Inkwell'; $s.Save()" >nul 2>&1
 
 if exist "%SHORTCUT_PATH%" (
-    echo  Shortcut created: "Inkwell" on your Desktop.
+    echo  Shortcut created: %SHORTCUT_PATH%
 ) else (
     echo.
     echo  [NOTE] Could not create desktop shortcut automatically.

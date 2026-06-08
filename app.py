@@ -34,6 +34,7 @@ MODELS_CONFIG = Path(__file__).parent / "models_config.json"
 FIGURES_DIR   = Path(PROJECT["brain_dir"]) / "figures"
 BOOKS_DIR     = Path(PROJECT["books_dir"])
 ENV_PATH      = Path(__file__).parent / ".env"
+LOGO_PATH     = Path(__file__).parent / "inkwell-logo.png"
 
 _brain_ready   = False
 _ingest_running = False
@@ -258,6 +259,11 @@ async def ingest_stream(req: IngestRequest):
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.STDOUT,
                 cwd=str(Path(__file__).parent),
+                env={
+                    **os.environ,
+                    "PYTHONUTF8": "1",
+                    "PYTHONIOENCODING": "utf-8",
+                },
             )
 
             async for raw_line in proc.stdout:
@@ -424,6 +430,13 @@ async def serve_figure(filename: str):
         raise HTTPException(404, "Figure not found")
     media_type = "image/jpeg" if filename.endswith(".jpg") else "image/png"
     return FileResponse(str(fig_path), media_type=media_type)
+
+
+@app.get("/inkwell-logo.png")
+async def serve_logo():
+    if not LOGO_PATH.exists():
+        raise HTTPException(404, "Logo not found")
+    return FileResponse(str(LOGO_PATH), media_type="image/png")
 
 
 # ── Sessions ──────────────────────────────────────────────────────────────────

@@ -50,6 +50,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .setup-status{font-size:12px;color:var(--tx3);flex:1}
 .setup-status.error{color:var(--red)}.setup-status.ok{color:var(--mint)}
 .btn-setup{background:linear-gradient(135deg,var(--aqua),var(--aqua2));border:none;border-radius:10px;padding:10px 22px;color:white;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s;box-shadow:0 2px 12px rgba(0,184,164,.28)}.btn-setup:hover{transform:translateY(-1px)}.btn-setup:disabled{opacity:.45;cursor:default;transform:none}
+.btn-setup-secondary{background:none;border:1px solid var(--border2);border-radius:10px;padding:10px 16px;color:var(--tx3);font-size:13px;font-weight:600;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif}.btn-setup-secondary:hover{border-color:var(--aqua);color:var(--aqua2)}
 
 /* ═══ BRAIN LOADING / ERROR STATES ═══ */
 #brain-loading{position:fixed;inset:0;background:var(--bg);z-index:800;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
@@ -104,6 +105,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 .tog-track{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:all .2s}.tog input:checked+.tog-track{background:var(--aqua)}
 .tog-thumb{position:absolute;width:12px;height:12px;background:white;border-radius:50%;top:3px;left:3px;transition:all .2s;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.15)}.tog input:checked~.tog-thumb{transform:translateX(16px)}
 .tog.web input:checked+.tog-track{background:var(--gold)}
+.key-manage{margin:0 12px 10px;width:calc(100% - 24px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--tx3);font-size:12px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;text-align:left}.key-manage:hover{border-color:var(--aqua);color:var(--aqua2)}
 .stats-inner{padding:11px 14px}.stat{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}.sk{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--tx4)}.sv{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--aqua2);background:var(--aqua-t);padding:2px 7px;border-radius:20px}
 .new-sess{margin:8px;width:calc(100% - 16px);background:none;border:1px dashed var(--border2);border-radius:7px;padding:7px;color:var(--tx3);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .15s;flex-shrink:0}.new-sess:hover{border-color:var(--aqua);color:var(--aqua)}
 .hlist{padding:4px 8px}
@@ -366,6 +368,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
     </div>
     <div class="setup-footer">
       <div class="setup-status" id="setup-status">Enter your Anthropic and Voyage keys to continue.</div>
+      <button class="btn-setup-secondary" id="setup-close" onclick="closeSetup()" style="display:none">Close</button>
       <button class="btn-setup" id="setup-btn" onclick="saveSetup()">Save &amp; Launch →</button>
     </div>
   </div>
@@ -411,6 +414,7 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
         <div><div class="tog-title">🌐 Web Search</div><div class="tog-sub" id="web-sub">Supplements books with live search</div></div>
         <label class="tog web"><input type="checkbox" id="web-tog" onchange="setWebSearch(this.checked)"><div class="tog-track"></div><div class="tog-thumb"></div></label>
       </div>
+      <button class="key-manage" onclick="openSetupWizard(true,'Add or update optional provider keys.')">API Keys</button>
       <div class="stats-inner">
         <div class="sec-label">Brain Stats</div>
         <div class="stat"><span class="sk">books indexed</span><span class="sv" id="s-books">—</span></div>
@@ -565,9 +569,7 @@ async function checkSetup(){
     if(s.setup_needed){
       // Required keys are missing, so show the setup wizard.
       hideBrainLoading();
-      document.getElementById('setup-overlay').classList.remove('hidden');
-      if(s.has_anthropic)document.getElementById('s-anthropic').placeholder='(already set)';
-      if(s.has_voyage)document.getElementById('s-voyage').placeholder='(already set)';
+      await openSetupWizard(false, 'Enter your Anthropic and Voyage keys to continue.', true);
 
     } else if(!s.brain_ready){
       // Keys exist; give startup a short window before showing an error.
@@ -630,6 +632,27 @@ function showBrainError(){
 // ═══ SETUP WIZARD ═══
 function toggleOptional(){document.getElementById('setup-optional').classList.toggle('open')}
 
+function closeSetup(){
+  document.getElementById('setup-overlay').classList.add('hidden');
+}
+
+async function openSetupWizard(openOptional=false,statusText='',required=false){
+  try{
+    const s=await fetch('/api/setup/status').then(r=>r.json());
+    document.getElementById('s-anthropic').placeholder=s.has_anthropic?'(already set)':'sk-ant-...';
+    document.getElementById('s-voyage').placeholder=s.has_voyage?'(already set)':'pa-...';
+    document.getElementById('s-brave').placeholder=s.has_brave?'(already set)':'BSAr...';
+    document.getElementById('s-google').placeholder=s.has_google?'(already set)':'AIza...';
+  }catch(e){}
+  document.getElementById('setup-optional').classList.toggle('open',openOptional);
+  document.getElementById('setup-close').style.display=required?'none':'inline-block';
+  if(statusText)document.getElementById('setup-status').textContent=statusText;
+  document.getElementById('setup-status').className='setup-status';
+  document.getElementById('setup-btn').disabled=false;
+  document.getElementById('setup-btn').textContent='Save & Launch →';
+  document.getElementById('setup-overlay').classList.remove('hidden');
+}
+
 async function saveSetup(){
   const btn=document.getElementById('setup-btn');
   const status=document.getElementById('setup-status');
@@ -653,7 +676,7 @@ async function saveSetup(){
     const data=await resp.json();
     if(data.status==='ready'){
       status.textContent='✓ Ready!';status.className='setup-status ok';
-      setTimeout(()=>{document.getElementById('setup-overlay').classList.add('hidden');initApp()},800);
+      setTimeout(()=>{closeSetup();initApp()},800);
     }else{
       status.textContent=`Error: ${data.message}`;status.className='setup-status error';
       btn.disabled=false;btn.textContent='Save & Launch →';
@@ -767,7 +790,16 @@ async function initApp(){
     document.getElementById('s-vectors').textContent=proj.total_vectors.toLocaleString();
     document.getElementById('s-insights').textContent=proj.total_insights;
     webSearchReady=proj.web_search_ready||false;
-    if(!webSearchReady){document.getElementById('web-sub').textContent='Add BRAVE_API_KEY in setup to enable';document.getElementById('web-tog').disabled=true}
+    const webToggle=document.getElementById('web-tog');
+    webToggle.disabled=false;
+    if(webSearchReady){
+      document.getElementById('web-sub').textContent='Supplements books with live search';
+    }else{
+      document.getElementById('web-sub').textContent='Click toggle to add a Brave key';
+      webToggle.checked=false;
+      useWeb=false;
+      document.getElementById('web-badge').classList.remove('on');
+    }
     const descEl=document.getElementById('esub');
     descEl.textContent = proj.books.length > 0
   ? `${proj.name} — ${proj.books.length} book${proj.books.length!==1?'s':''} indexed. Ask anything from your library.`
@@ -817,7 +849,17 @@ document.addEventListener('click',e=>{
   if(!e.target.closest('#vision-wrap')){document.getElementById('vision-trigger')?.classList.remove('open');document.getElementById('vision-options')?.classList.remove('open')}
 });
 function setInsights(on){useIns=on;document.getElementById('ins-badge').classList.toggle('on',on)}
-function setWebSearch(on){useWeb=on;document.getElementById('web-badge').classList.toggle('on',on)}
+function setWebSearch(on){
+  if(on&&!webSearchReady){
+    useWeb=false;
+    document.getElementById('web-tog').checked=false;
+    document.getElementById('web-badge').classList.remove('on');
+    openSetupWizard(true,'Add a Brave Search API key to enable web search.');
+    return;
+  }
+  useWeb=on;
+  document.getElementById('web-badge').classList.toggle('on',on);
+}
 let currentVision='skip';
 
 function toggleVisionDrop(){
