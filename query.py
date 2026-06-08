@@ -59,6 +59,8 @@ def init():
     global _chroma, _text_col, _summary_col, _insight_col
     global _anthropic, _voyage, _book_index, _bm25_index, _bm25_ids, _bm25_texts
 
+    if _chroma is not None:
+        shutdown()
 
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY")
     voyage_key    = os.environ.get("VOYAGE_API_KEY")
@@ -95,6 +97,29 @@ def init():
     if MODELS_CONFIG.exists():
         with open(MODELS_CONFIG, encoding="utf-8") as f:
             _models_config = json.load(f)
+
+
+def shutdown():
+    global _chroma, _text_col, _summary_col, _insight_col
+    global _book_index, _bm25_index, _bm25_ids, _bm25_texts
+
+    if _chroma is not None:
+        try:
+            _chroma._system.stop()
+        except Exception:
+            pass
+        try:
+            _chroma._release_system(_chroma._identifier)
+        except Exception:
+            pass
+        try:
+            _chroma.clear_system_cache()
+        except Exception:
+            pass
+
+    _chroma = _text_col = _summary_col = _insight_col = None
+    _book_index = {}
+    _bm25_index = _bm25_ids = _bm25_texts = None
 
 
 def _build_bm25():

@@ -249,6 +249,12 @@ async def ingest_stream(req: IngestRequest):
             yield f"data: {json.dumps({'type': 'log', 'text': '  Safe to close this tab — progress saves automatically after each book.'})}\n\n"
             yield f"data: {json.dumps({'type': 'log', 'text': ''})}\n\n"
 
+            try:
+                brain.shutdown()
+            except Exception:
+                pass
+            _brain_ready = False
+
             script = str(Path(__file__).parent / "ingest.py")
             cmd    = [sys.executable, script, f"--vision={req.vision}"]
             if req.resume:
