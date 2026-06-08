@@ -139,7 +139,7 @@ def save_turn(sid: str, turn_number: int, role: str, content: str,
 def get_session_turns(sid: str) -> list[dict]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT * FROM turns WHERE session_id= AND deleted=0 ORDER BY turn_number ASC",
+            "SELECT * FROM turns WHERE session_id=? AND deleted=0 ORDER BY turn_number ASC",
             (sid,)
         ).fetchall()
     result = []
@@ -168,7 +168,7 @@ def soft_delete_turn(turn_id: int):
             (sid, tnum, pair)
         )
         count = conn.execute(
-            "SELECT COUNT(*) FROM turns WHERE session_id= AND deleted=0", (sid,)
+            "SELECT COUNT(*) FROM turns WHERE session_id=? AND deleted=0", (sid,)
         ).fetchone()[0]
         conn.execute("UPDATE sessions SET turn_count=? WHERE id=?", (count, sid))
 

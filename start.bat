@@ -1,21 +1,22 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal
 title Inkwell
 color 0B
 
-:: ── Sanity check ─────────────────────────────────────────────────────────
-if not exist "%~dp0venv\Scripts\activate.bat" (
+set "SCRIPT_DIR=%~dp0"
+set "VENV_ACTIVATE=%SCRIPT_DIR%venv\Scripts\activate.bat"
+
+if not exist "%VENV_ACTIVATE%" (
     echo.
-    echo  [ERROR] Setup not complete.
+    echo  [ERROR] Setup is not complete.
     echo  Please run install.bat first.
     echo.
     pause
     exit /b 1
 )
 
-:: ── Check if already running ──────────────────────────────────────────────
 netstat -ano 2>nul | findstr ":8000 " | findstr "LISTENING" >nul 2>&1
-if %errorlevel% equ 0 (
+if not errorlevel 1 (
     echo.
     echo  Inkwell is already running.
     echo  Opening browser...
@@ -23,10 +24,8 @@ if %errorlevel% equ 0 (
     exit /b 0
 )
 
-:: ── Activate virtual environment ──────────────────────────────────────────
-call "%~dp0venv\Scripts\activate.bat"
+call "%VENV_ACTIVATE%"
 
-:: ── Start server ──────────────────────────────────────────────────────────
 echo.
 echo  ============================================================
 echo    Inkwell
@@ -39,11 +38,8 @@ echo  To stop: close this window or press Ctrl+C
 echo  ============================================================
 echo.
 
-:: Open browser after 6 seconds (extra time for slow machines / antivirus scan)
 start "" /b cmd /c "timeout /t 6 /nobreak >nul && start http://localhost:8000"
-
-:: Start server
-python "%~dp0app.py"
+python "%SCRIPT_DIR%app.py"
 
 echo.
 echo  Server stopped. Press any key to close.
