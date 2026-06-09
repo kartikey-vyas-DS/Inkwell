@@ -76,6 +76,15 @@ if exist "%VENV_DIR%\Scripts\activate.bat" (
         pause
         exit /b 1
     )
+    if not exist "%VENV_DIR%\Scripts\activate.bat" (
+        echo.
+        echo  [ERROR] Virtual environment was not created correctly.
+        echo  Please install Python 3.11 manually from https://python.org/downloads
+        echo  Then run install.bat again.
+        echo.
+        pause
+        exit /b 1
+    )
     echo  Created: %VENV_DIR%
 )
 
@@ -84,7 +93,23 @@ echo  [3/4] Installing dependencies. This can take several minutes...
 echo  Please wait...
 echo.
 
+if not exist "%VENV_DIR%\Scripts\activate.bat" (
+    echo.
+    echo  [ERROR] Virtual environment is missing.
+    echo  Please delete the incomplete venv folder and run install.bat again.
+    echo.
+    pause
+    exit /b 1
+)
+
 call "%VENV_DIR%\Scripts\activate.bat"
+if errorlevel 1 (
+    echo.
+    echo  [ERROR] Failed to activate the virtual environment.
+    echo.
+    pause
+    exit /b 1
+)
 python -m pip install --upgrade pip --quiet
 if errorlevel 1 (
     echo.
@@ -149,18 +174,17 @@ pause
 exit /b 0
 
 :find_python
-py -3.11 --version >nul 2>&1
-if not errorlevel 1 (
+set "PYTHON_TEST="
+for /f "tokens=*" %%i in ('py -3.11 -c "print('OK')" 2^>nul') do set "PYTHON_TEST=%%i"
+if "%PYTHON_TEST%"=="OK" (
     set "PYTHON_CMD=py -3.11"
     exit /b 0
 )
 
-python --version >nul 2>&1
-if not errorlevel 1 (
-    python -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 11) else 1)" >nul 2>&1
-    if not errorlevel 1 (
-        set "PYTHON_CMD=python"
-        exit /b 0
-    )
+set "PYTHON_TEST="
+for /f "tokens=*" %%i in ('python -c "import sys; print('OK' if sys.version_info >= (3, 11) else 'NO')" 2^>nul') do set "PYTHON_TEST=%%i"
+if "%PYTHON_TEST%"=="OK" (
+    set "PYTHON_CMD=python"
+    exit /b 0
 )
 exit /b 1
