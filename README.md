@@ -241,6 +241,10 @@ Managed devices may block Python installation, PowerShell, local servers, or dat
 - Anthropic, OpenAI-compatible, Google Gemini, and DeepSeek model routing
 - SQLite for local sessions and insights
 
+## Acknowledgements
+
+This project would not exist without the idea and inspiration of Mr. Yash Tiwari. I am grateful for his vision that made Inkwell possible.
+
 ## License
 
 MIT
