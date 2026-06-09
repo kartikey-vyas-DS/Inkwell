@@ -1,46 +1,45 @@
 # Inkwell
 
-Inkwell is a local, bring-your-own-key research assistant for PDF libraries. It indexes your books into a local search database, then lets you ask questions and get cited answers back to the exact pages and passages that informed them.
+Inkwell is a local, bring-your-own-key research assistant for PDF libraries. Add your books, index them on your machine, then ask questions and get answers with citations back to the exact pages and passages that informed them.
 
 It is built for people who want to think with a curated library instead of asking the open internet first: founders, researchers, operators, students, writers, and domain experts with PDFs worth returning to.
 
-## What It Does
+![Inkwell answer with citations](docs/assets/hero-answer.png)
 
-- Indexes PDF books into a local ChromaDB vector database using Voyage embeddings
-- Combines semantic search with BM25 keyword search for better retrieval
-- Streams answers with inline citations such as `[Book Name, p.42]`
-- Shows retrieved source passages in a citation drawer
-- Supports optional Brave web search when a Brave key is provided
-- Lets you save "Earned Insights" from useful sessions and include them in future answers
-- Optionally analyzes figures and diagrams with Claude or Gemini vision
-- Stores your books, sessions, insights, and vector database locally
+## What You Can Do
 
-## Status
+- Ask questions across your own PDF library
+- Get cited answers with page-level source references
+- Open a citation drawer to inspect the actual retrieved passages
+- Index text and tables by default, with optional vision modes for diagrams
+- Save useful answers as Earned Insights and include them in future sessions
+- Add optional Brave Search, OpenAI, Gemini, and DeepSeek keys
+- Keep your books, keys, vectors, sessions, and notes local to your machine
 
-Inkwell is an early local-first release. The core single-library workflow is usable today: install, add keys, upload PDFs, ingest, ask questions, and inspect citations.
+![Citation drawer with source passage](docs/assets/citation-drawer.png)
 
-Planned next steps include:
+## Current Status
 
-- Multiple project libraries inside one Inkwell installation
-- A "Check for updates" flow for Git-based installs
-- A more formal release/package flow
-- More resilient cross-platform testing
+Inkwell is an early local-first release. The core single-library workflow is usable today:
 
-## How It Works
+1. Install locally.
+2. Add your own API keys.
+3. Upload PDFs.
+4. Ingest the books.
+5. Ask questions.
+6. Inspect citations.
+7. Save useful insights.
 
-1. You add your own API keys in the setup screen.
-2. You upload PDF books from the browser UI.
-3. Inkwell extracts text, tables, and optionally figure descriptions.
-4. It stores searchable chunks locally in `Inkwell Data/`.
-5. When you ask a question, Inkwell retrieves relevant passages and asks the selected model to synthesize an answer with citations.
-
-Your `.env`, books, Chroma database, and session history are ignored by git and should stay on your machine.
+Planned future updates include multiple project libraries, an easier update flow, stronger packaging, and broader Mac/Linux testing.
 
 ## Requirements
 
-- Python 3.11+
-- Anthropic API key
-- Voyage AI API key
+Required:
+
+- Windows 10/11 for the tested installer flow
+- Python 3.11+; the Windows installer can install it if missing
+- Anthropic API key for answers
+- Voyage AI API key for embeddings and book search
 
 Optional:
 
@@ -49,20 +48,80 @@ Optional:
 - OpenAI API key for GPT models
 - DeepSeek API key for DeepSeek chat
 
-Provider pricing and free-tier details change over time, so check each provider's pricing page before heavy use. Inkwell is designed as BYOK software: you control your own usage and billing.
+Inkwell is BYOK software. You use your own provider accounts and control your own usage and billing. Provider free tiers and pricing can change, so check provider pricing pages before heavy use.
 
-## Installation
+## Windows Setup
 
-### Windows
+### 1. Download And Extract
 
-1. Clone or download this repository.
-2. Extract it to a simple path such as `C:\Inkwell\`.
-3. Double-click `install.bat`.
-4. If Windows SmartScreen appears, click **More info** and then **Run anyway**.
-5. Wait for dependencies to install.
-6. Launch Inkwell from the desktop shortcut or by double-clicking `start.bat`.
+Download the repository ZIP from GitHub, then choose **Extract All**.
 
-### Mac / Linux
+Do not run `install.bat` from inside the compressed ZIP preview. If Windows shows a path under `Temp` or a `.zip` file, close it, extract the ZIP first, and run the installer from the extracted folder.
+
+### 2. Run The Installer
+
+Open the extracted `Inkwell-main` folder and double-click `install.bat`.
+
+Windows may show this unsigned-file warning because Inkwell is not code-signed yet:
+
+![Windows Unknown Publisher warning](docs/assets/Unknown%20Publisher.png)
+
+Click **Run** only if you downloaded Inkwell from the official GitHub repository:
+
+```text
+https://github.com/kartikey-vyas-DS/Inkwell
+```
+
+The installer will:
+
+- Check for Python 3.11
+- Create a virtual environment
+- Install dependencies
+- Create an Inkwell desktop shortcut
+
+![Inkwell desktop shortcut](docs/assets/desktop-shortcut.png)
+
+### 3. Add API Keys
+
+Launch Inkwell from the desktop shortcut. Your browser will open to `http://localhost:8000`.
+
+Enter your Anthropic and Voyage keys in the setup wizard. Optional provider keys can be added now or later from the **API Keys** button.
+
+![Inkwell setup wizard](docs/assets/setup-wizard.png)
+
+### 4. Add Books
+
+Open the **Books** tab and upload your PDFs.
+
+Vision mode options:
+
+- **Skip**: text and tables only; recommended for most books
+- **Claude Vision**: stronger for diagrams and technical figures
+- **Gemini Vision**: useful if you prefer Google's vision model
+
+![Books tab with vision dropdown](docs/assets/books-vision-dropdown.png)
+
+### 5. Start Ingestion
+
+Keep **Skip already-ingested books** enabled unless you intentionally want to re-process everything.
+
+Click **Start Ingestion** and wait for the completion message. The progress bar and log show that the app is actively working.
+
+![Ingestion complete](docs/assets/ingestion%20complete.png)
+
+### 6. Ask Questions
+
+Once ingestion is complete, ask a question from the main chat screen. Good questions are specific and connected to your library, for example:
+
+```text
+What are the strongest practical ideas across these books?
+```
+
+Answers include inline citations. Click a citation to open the source drawer and inspect the passage behind the answer.
+
+## Mac And Linux
+
+Shell scripts are included:
 
 ```bash
 chmod +x install.sh
@@ -70,38 +129,40 @@ chmod +x install.sh
 ./start.sh
 ```
 
-The shell scripts are included for convenience, but the project is currently tested primarily on Windows.
-
-## First Run
-
-1. Launch Inkwell.
-2. Your browser opens to `http://localhost:8000`.
-3. Enter your Anthropic and Voyage keys in the setup wizard.
-4. Add optional provider keys if you want web search or non-Anthropic synthesis models.
-5. Open the **Books** tab and upload PDFs.
-6. Choose a vision mode and click **Start Ingestion**.
-7. Ask questions from your indexed library.
-
-## Adding Books
-
-PDFs should have selectable text. Scanned PDFs without OCR will not extract meaningful text. If a PDF is scanned, run OCR first with a tool such as Adobe Acrobat or OCRmyPDF.
-
-Vision modes:
-
-- **Skip**: text and tables only; recommended for most books
-- **Claude Vision**: stronger for technical figures and diagrams
-- **Gemini Vision**: useful when you prefer Google's vision model
-
-Keep **Skip already-ingested books** checked when adding new books later.
+The project is currently tested primarily on Windows. Mac/Linux support should improve over time, but expect some rough edges.
 
 ## Updating
 
-For now, updates are manual:
+For now, updates are manual.
 
-- If you cloned with git, run `git pull` from the project folder, then reinstall dependencies if `requirements.txt` changed.
-- If you downloaded a ZIP, download the new version and copy over your local `.env`, `Books/`, and `Inkwell Data/` folders.
+If you cloned with git:
 
-A safer in-app update flow is planned. The intended model is: check GitHub for a newer version, pull changes for Git installs, update dependencies, then ask the user to restart Inkwell. Local data will remain outside git-tracked files.
+```bash
+git pull
+```
+
+Then reinstall dependencies if `requirements.txt` changed.
+
+If you downloaded a ZIP, download the new version and keep your local data safe:
+
+- `.env`
+- `Books/`
+- `Inkwell Data/`
+
+A safer in-app update flow is planned. The intended future model is: check GitHub for a newer version, pull changes for git installs, update dependencies, then ask the user to restart. Local data should remain outside git-tracked files.
+
+## How It Works
+
+1. Inkwell stores your API keys in a local `.env` file.
+2. You upload PDF books through the browser UI.
+3. The ingestion pipeline extracts text, tables, and optional figure descriptions.
+4. Voyage creates embeddings.
+5. ChromaDB stores searchable vectors locally in `Inkwell Data/`.
+6. BM25 keyword search is combined with vector search.
+7. The selected model writes an answer using retrieved context.
+8. The UI shows citations and source passages.
+
+Your `.env`, books, Chroma database, and session history are ignored by git and should stay on your machine.
 
 ## Project Structure
 
@@ -120,6 +181,7 @@ install.sh          Mac/Linux installer
 start.bat           Windows launcher
 start.sh            Mac/Linux launcher
 Books/              User PDFs go here
+docs/assets/        README screenshots
 ```
 
 ## Configuration
@@ -140,6 +202,14 @@ Books/              User PDFs go here
 The browser setup wizard handles API keys. If you prefer manual setup, copy `.env.template` to `.env` and fill in the keys you want to use.
 
 ## Troubleshooting
+
+**Windows says "Unknown Publisher"**
+
+Inkwell is not code-signed yet, so Windows may warn before running `install.bat` or `start.bat`. Only click **Run** if you downloaded it from the official GitHub repository.
+
+**The installer opens from a Temp or ZIP path**
+
+You are probably running it from inside the ZIP preview. Extract the ZIP first, then run `install.bat` from the extracted folder.
 
 **The browser opens before the server is ready**
 
